@@ -18,3 +18,4 @@ saved_models/
 *.out
 *.synctex.gz
 *.toc
+*.xdv
