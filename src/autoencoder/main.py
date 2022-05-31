@@ -15,13 +15,15 @@ def load_data(
         X = np.load(f)
     
     idx = np.random.permutation(X.shape[0])
-    X = X[idx][:dataset_size]
+    X = X[idx][:dataset_size] / 255.0
+    X = X.reshape((dataset_size, -1))
 
     return torch.tensor(X, dtype=torch.float32)
 
 def main(config: dict) -> None:
 
     save_directory = os.path.join("saved_models", datetime.now().strftime("%Y.%m.%d-%H:%M:%S"))
+    #save_directory = os.path.join("saved_models")
     os.makedirs(save_directory, exist_ok=True)
 
     X = load_data(

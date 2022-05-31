@@ -6,10 +6,18 @@
 * numpy
 * scipy
 * torch
+* torchvision
+* tqdm
 * ipykernel
 
 ```shell
 pip install -e .
+```
+
+## Preparing the MNIST dataset
+
+```shell
+python src/mnist.py
 ```
 
 ## License

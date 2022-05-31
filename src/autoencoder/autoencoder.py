@@ -1,6 +1,9 @@
+import numpy as np
 import os
 import torch
 import torch.nn as nn
+import torchvision
+from torchvision.utils import save_image
 from tqdm import tqdm
 from typing import Optional, Dict
 
@@ -39,13 +42,6 @@ class AutoEncoder(nn.Module):
 
         self.prepare_logs_directories(save_dir=save_dir)
 
-    def forward(
-        self,
-        x: torch.tensor
-    ) -> torch.tensor:
-
-        return self.decode(self.encode(x))
-
     def _train(
         self,
         X_train,
@@ -55,7 +51,7 @@ class AutoEncoder(nn.Module):
         self.centers_encoder = X_train
         losses = {'epoch': [], 'loss': []}
 
-        for i in tqdm(range(epochs)):
+        for epoch in tqdm(range(epochs)):
 
             z = self.encode(x=X_train)
             self.centers_decoder = z
@@ -66,8 +62,10 @@ class AutoEncoder(nn.Module):
             loss.backward()
             self.optimizer.step()
 
-            losses['epoch'].append(i)
+            losses['epoch'].append(epoch)
             losses['loss'].append(loss.detach)
+
+            self.plot_images(original_images=X_train[:64], epoch=epoch)
 
     def encode(
         self,
@@ -78,7 +76,6 @@ class AutoEncoder(nn.Module):
         if not key in self.hash_gram:
             self.hash_gram[key] = torch.tensor(gaussian(X1=x.detach().numpy(), X2=self.centers_encoder.detach().numpy(), sigma=self.sigma_encoder), dtype=torch.float32)
         K = self.hash_gram[key]
-
         return torch.mm(K, self.alpha_encoder.t())
 
     def decode(
@@ -91,6 +88,24 @@ class AutoEncoder(nn.Module):
             self.hash_gram[key] = torch.tensor(gaussian(X1=z.detach().numpy(), X2=self.centers_decoder.detach().numpy(), sigma=self.sigma_decoder), dtype=torch.float32)
         K = self.hash_gram[key]
         return torch.mm(K, self.alpha_decoder)
+
+    def plot_images(
+        self,
+        original_images: torch.tensor,
+        epoch: int
+    ) -> None:
+
+        image_size = int(original_images.shape[1]**0.5)
+
+        reconstructed_images = self.decode(self.encode(original_images))
+        original_images = original_images.view(original_images.shape[0], 1, image_size, image_size) * 255.0
+        reconstructed_images = reconstructed_images.view(original_images.shape[0], 1, image_size, image_size) * 255.0
+
+        with torch.no_grad():
+            original_images_grid = torchvision.utils.make_grid(original_images)
+            reconstructed_images_grid = torchvision.utils.make_grid(reconstructed_images)
+            save_image(original_images_grid, os.path.join(self.save_dir_images, 'epoch={}_original.png'.format(epoch)))
+            save_image(reconstructed_images_grid, os.path.join(self.save_dir_images, 'epoch={}_reconstructed.png'.format(epoch)))
 
     def prepare_logs_directories(
         self,

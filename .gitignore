@@ -7,6 +7,7 @@ __pycache__
 build/
 dist/
 data/
+saved_models/
 
 *.aux
 *.bbl
