@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import os
 import urllib.request
 import gzip
@@ -81,16 +82,37 @@ def save_ndarrays(
 
                 data_dict[set + '_' + category] = parsed  # SAVE THE NUMPY ARRAY TO A CORRESPONDING KEY   
 
-                path = os.path.join('./data/mnist', set + '_' + category)
+                path = os.path.join(datapath, set + '_' + category)
                 numpy.save(path, parsed) 
+
+                print(parsed.shape)
 
                 if remove_ubytes:
                     os.remove(datapath + file)
 
-def main(
-    datapath: str,
-    urls: List[str]
-) -> None:
+def main(args) -> None:
+
+    if args.dataset == 'mnist':
+
+        datapath = './data/mnist/'  
+
+        urls = [
+            'http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz',
+            'http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz',
+            'http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz',
+            'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz'
+        ]
+
+    elif args.dataset == 'fashion_mnist':
+
+        datapath = './data/fashion_mnist/'  
+
+        urls = {
+            "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz",
+            "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz",
+            "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz",
+            "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz"
+        }
 
     print('PREPARING MNSIT DATASET...')
 
@@ -100,16 +122,10 @@ def main(
 
     print('MNIST DATASET READY')
     
-
 if __name__ == '__main__':
 
-    datapath = './data/mnist/'  
+    parser = ArgumentParser()
+    parser.add_argument('--dataset', type=str, choices=['mnist', 'fashion_mnist'], default='mnist')
+    args = parser.parse_args()
 
-    URLS = [
-        'http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz',
-        'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz'
-    ]
-
-    main(urls=URLS, datapath=datapath)
+    main(args)

@@ -65,7 +65,10 @@ class AutoEncoder(nn.Module):
             losses['epoch'].append(epoch)
             losses['loss'].append(loss.detach)
 
-            self.plot_images(original_images=X_train[:64], epoch=epoch)
+            if epoch % 10 == 0:
+                self.plot_images(original_images=X_train[:64], epoch=epoch)
+
+        torch.save(self, os.path.join(self.save_dir_model, 'model.pt'))
 
     def encode(
         self,
@@ -114,11 +117,9 @@ class AutoEncoder(nn.Module):
 
         self.save_dir = save_dir
         self.save_dir_model = os.path.join(self.save_dir, 'model')
-        self.save_dir_ckpts = os.path.join(self.save_dir_model, 'ckpts')
         self.save_dir_images = os.path.join(self.save_dir, 'images')
         os.makedirs(self.save_dir, exist_ok=True)
         os.makedirs(self.save_dir_model, exist_ok=True)
-        os.makedirs(self.save_dir_ckpts, exist_ok=True)
         os.makedirs(self.save_dir_images, exist_ok=True)
 
 

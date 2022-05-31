@@ -14,10 +14,24 @@
 pip install -e .
 ```
 
-## Preparing the MNIST dataset
+## Preparing the MNIST and Fashion MNIST dataset
 
 ```shell
-python src/mnist.py
+python src/data_factory/mnist.py --dataset mnist
+```
+or
+```shell
+python src/data_factory/mnist.py --dataset fashion_mnist
+```
+
+## Train a model
+
+```shell
+python src/autoencoder/main.py --dataset mnist
+```
+or
+```shell
+python src/autoencoder/main.py --dataset fashion_mnist
 ```
 
 ## License

@@ -1,10 +1,10 @@
+from argparse import ArgumentParser
 from datetime import datetime
 import numpy as np
 import os
 import torch
 
 from src.autoencoder.autoencoder import AutoEncoder
-from src.autoencoder.config import config
 
 def load_data(
     data_path: str,
@@ -20,10 +20,19 @@ def load_data(
 
     return torch.tensor(X, dtype=torch.float32)
 
-def main(config: dict) -> None:
+def main(args) -> None:
 
-    save_directory = os.path.join("saved_models", datetime.now().strftime("%Y.%m.%d-%H:%M:%S"))
-    #save_directory = os.path.join("saved_models")
+    config = {
+        'data_path': os.path.join('./data', args.dataset, 'train_images.npy'),
+        'dataset_size': 5000,
+        'latent_dim': 20,
+        'sigma_encoder': 1e-2,
+        'sigma_decoder': 1e-2,
+        'learning_rate': 1e-3,
+        'epochs': 150,
+    }
+
+    save_directory = os.path.join("saved_models", args.dataset, datetime.now().strftime("%Y.%m.%d-%H:%M:%S"))
     os.makedirs(save_directory, exist_ok=True)
 
     X = load_data(
@@ -46,7 +55,10 @@ def main(config: dict) -> None:
         epochs=config['epochs']
     )
 
-
 if __name__ == '__main__':
 
-    main(config=config)
+    parser = ArgumentParser()
+    parser.add_argument('--dataset', type=str, choices=['mnist', 'fashion_mnist'], default='mnist')
+    args = parser.parse_args()
+
+    main(args)
