@@ -4,7 +4,7 @@ import numpy as np
 import os
 import torch
 
-from src.autoencoder.autoencoder import AutoEncoder
+from src.autoencoder_v2.autoencoder import AutoEncoder
 
 def load_data(
     data_path: str,
@@ -28,9 +28,10 @@ def main(args) -> None:
         'train_dataset_size': 1000,
         'test_dataset_size': 16,
         'latent_dim': 100,
+        'number_centers': 400,
         'sigma_encoder': 1e-2,
         'sigma_decoder': 1e-2,
-        'regularization': 1e-8,
+        'regularization': 0.0,
         'learning_rate': 1e-2,
         'epochs': 400,
     }
@@ -40,11 +41,11 @@ def main(args) -> None:
 
     X_train = load_data(data_path=config['train_data_path'], dataset_size=config['train_dataset_size'])
     X_test = load_data(data_path=config['test_data_path'], dataset_size=config['test_dataset_size'])
-    N, D = X_train.shape
 
     autoencoder = AutoEncoder(
-        dataset_size=N, 
-        feature_dim=D,
+        #number_centers=config['number_centers'], 
+        number_centers=X_train.shape[0], 
+        feature_dim=X_train.shape[1],
         latent_dim=config['latent_dim'],
         sigma_encoder=config['sigma_encoder'],
         sigma_decoder=config['sigma_decoder'],

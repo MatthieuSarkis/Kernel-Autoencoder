@@ -30,9 +30,9 @@ def main(args) -> None:
         'latent_dim': 100,
         'sigma_encoder': 1e-2,
         'sigma_decoder': 1e-2,
-        'regularization': 1e-8,
+        'regularization': 0.0,
         'learning_rate': 1e-2,
-        'epochs': 400,
+        'epochs': 100,
     }
 
     save_directory = os.path.join("saved_models", args.dataset, datetime.now().strftime("%Y.%m.%d-%H:%M:%S"))

@@ -18,7 +18,8 @@ class AutoEncoder(nn.Module):
         latent_dim: int = 20,
         sigma_encoder: float = 1.0,
         sigma_decoder: float = 1.0,
-        regularization: float = 1.0,
+        regularization1: float = 1.0,
+        regularization2: float = 1.0,
         learning_rate: float = 1e-3,
         save_dir: str = './saved_models/autoencoder',
     ) -> None:
@@ -27,12 +28,12 @@ class AutoEncoder(nn.Module):
 
         self.sigma_encoder = sigma_encoder
         self.sigma_decoder = sigma_decoder
-        self.regularization = regularization
+        self.regularization1 = regularization1
+        self.regularization2 = regularization2
+        self.dataset_size = dataset_size
 
-        self.alpha_encoder = nn.Parameter(torch.empty(size=(latent_dim, dataset_size), dtype=torch.float32))
-        self.alpha_decoder = nn.Parameter(torch.empty(size=(dataset_size, feature_dim), dtype=torch.float32))
+        self.alpha_encoder = nn.Parameter(torch.empty(size=(dataset_size, latent_dim), dtype=torch.float32))
         nn.init.xavier_uniform_(self.alpha_encoder)
-        nn.init.xavier_uniform_(self.alpha_decoder)
 
         self.centers_encoder: Optional[torch.tensor] = None
         self.centers_decoder: Optional[torch.tensor] = None
@@ -54,16 +55,19 @@ class AutoEncoder(nn.Module):
         self.centers_encoder = X_train
         losses = {'epoch': [], 'train_loss': [], 'test_loss': []}
 
+        K = gaussian(X1=X_train.detach().numpy(), X2=X_train.detach().numpy(), sigma=self.sigma_encoder)
+
         for epoch in tqdm(range(epochs)):
 
-            z = self.encode(x=X_train)
-            self.centers_decoder = z
-            reconstructed = self.decode(z)
+            Kalpha = torch.mm(K, self.alpha_encoder)
+            Ktilde = gaussian(X1=Kalpha.detach().numpy(), X2=Kalpha.detach().numpy(), sigma=self.sigma_decoder)
+
+            reconstructed = torch.mm(Ktilde, torch.mm(torch.linalg.inverse(Ktilde + torch.eye(n=self.dataset_size) * self.regularization1), X_train))
 
             l2_norm = sum(p.pow(2.0).sum() for p in self.parameters())
 
             self.optimizer.zero_grad()
-            train_loss = self.criterion(reconstructed, X_train) + self.regularization * l2_norm
+            train_loss = self.criterion(reconstructed, X_train) + self.regularization2 * l2_norm
             #test_loss = self.criterion(self.decode(self.encode(X_test)), X_test)
             train_loss.backward()
             self.optimizer.step()
@@ -89,22 +93,8 @@ class AutoEncoder(nn.Module):
         x: torch.tensor
     ) -> torch.tensor:
 
-        key = hash((x.detach().numpy().tobytes(), self.centers_encoder.detach().numpy().tobytes()))
-        if not key in self.hash_gram:
-            self.hash_gram[key] = torch.tensor(gaussian(X1=x.detach().numpy(), X2=self.centers_encoder.detach().numpy(), sigma=self.sigma_encoder), dtype=torch.float32)
-        K = self.hash_gram[key]
-        return torch.mm(K, self.alpha_encoder.t())
-
-    def decode(
-        self,
-        z: torch.tensor
-    ) -> torch.tensor:
-
-        key = hash((z.detach().numpy().tobytes(), self.centers_decoder.detach().numpy().tobytes()))
-        if not key in self.hash_gram:
-            self.hash_gram[key] = torch.tensor(gaussian(X1=z.detach().numpy(), X2=self.centers_decoder.detach().numpy(), sigma=self.sigma_decoder), dtype=torch.float32)
-        K = self.hash_gram[key]
-        return torch.mm(K, self.alpha_decoder)
+        K = torch.tensor(gaussian(X1=x.detach().numpy(), X2=self.centers_encoder.detach().numpy(), sigma=self.sigma_encoder), dtype=torch.float32)
+        return torch.mm(K, self.alpha_encoder)
 
     def plot_images(
         self,
@@ -115,7 +105,8 @@ class AutoEncoder(nn.Module):
 
         image_size = int(train_original_images.shape[1]**0.5)
 
-        train_reconstructed_images = self.decode(self.encode(train_original_images))
+        train_reconstructed_images = torch.mm(Ktilde, torch.mm(torch.linalg.inverse(Ktilde + torch.eye(n=self.dataset_size) * self.regularization1), X_train))
+
         train_original_images = train_original_images.view(train_original_images.shape[0], 1, image_size, image_size) * 255.0
         train_reconstructed_images = train_reconstructed_images.view(train_original_images.shape[0], 1, image_size, image_size) * 255.0
 

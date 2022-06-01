@@ -1,14 +1,23 @@
 \documentclass[conference]{IEEEtran}
 %\IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+
 \usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=teal,
+    }
+
 \begin{document}
 
 %\title{Conference Paper Title*\\
@@ -20,64 +29,69 @@
 \title{Kernel Autoencoders}
 
 \author{
-\IEEEauthorblockN{1\textsuperscript{st} Matthieu Sarkis}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} ?}
+    \IEEEauthorblockN{1\textsuperscript{st} Matthieu Sarkis}
+    \IEEEauthorblockA{\textit{Department of Physics and Materials Science (University of Luxembourg)}\\
+    Luxembourg City, Luxembourg \\
+    matthieu.sarkis@uni.lu}
+
+    \and
+
+    \IEEEauthorblockN{2\textsuperscript{nd} ?}
 }
 
 \maketitle
 
 \begin{abstract}
+
     Kernel Autoencoders
+
 \end{abstract}
 
 \begin{IEEEkeywords}
+
     Kernel
+
 \end{IEEEkeywords}
+
+\section*{To Do List}
+
+    \begin{itemize}
+
+        \item Make the model variational, hence generative
+        \item Improve the performance
+        \begin{itemize}
+            \item Improve the time complexity
+            \item Is the model actually solvable analytically?
+        \end{itemize}
+        \item Study various datasets: 
+        \begin{itemize}
+            \item mnist
+            \item fashion-mnist 
+            \item qm7x
+        \end{itemize}
+        \item Any connection to deep gaussian processes?
+        \begin{itemize}
+            \item \href{http://inverseprobability.com/talks/notes/deep-gaussian-processes-a-motivation-and-introduction.html}{Deep Gaussian processes tutorial}
+            \item \href{http://gaussianprocess.org/gpml/chapters/RW.pdf}{Book}
+            \item \href{http://inverseprobability.com/talks/notes/gpss-session-1.html}{Intro to Gaussian Processes}
+            \item \href{https://link.springer.com/content/pdf/10.1007/s10994-018-5723-3.pdf}{Autoencoders?}
+        \end{itemize}
+        \item Insist on molecules? Separate paper?
+        \begin{itemize}
+            \item Autoencoder for efficient molecular representation
+            \item Build generative model
+        \end{itemize}
+        \item Use quantum circuit to evaluate the kernels, separate paper?
+        \item Document the code much better
+        \item Hyperparameters tuning with grid search or Metropolis-Hastings
+
+    \end{itemize}
 
 \section{Introduction}
 
-\section{a}
-
-\subsection{a}
-
-
-\begin{itemize}
-\item a
-\item a
-\end{itemize}
- 
-\begin{table}[htbp]
-\caption{Table Type Styles}
-\begin{center}
-\begin{tabular}{|c|c|c|c|}
-\hline
-\textbf{Table}&\multicolumn{3}{|c|}{\textbf{Table Column Head}} \\
-\cline{2-4} 
-\textbf{Head} & \textbf{\textit{Table column subhead}}& \textbf{\textit{Subhead}}& \textbf{\textit{Subhead}} \\
-\hline
-copy& More table copy$^{\mathrm{a}}$& &  \\
-\hline
-\multicolumn{4}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
-\end{tabular}
-\label{tab1}
-\end{center}
-\end{table}
-
-\begin{figure}[htbp]
-\centerline{\includegraphics{fig1.png}}
-\caption{Example of a figure caption.}
-\label{fig}
-\end{figure}
-
-
 \section*{Acknowledgment}
 
-a \cite{IEEEhowto:IEEEtranpage}.
+\cite{IEEEhowto:IEEEtranpage}.
 
 \bibliographystyle{IEEEtran}  
 \bibliography{IEEEabrv, bibliography}
@@ -85,3 +99,32 @@ a \cite{IEEEhowto:IEEEtranpage}.
 \vspace{12pt}
 
 \end{document}
+
+
+
+
+
+%%%%%%%%%%%%%
+
+%\begin{table}[htbp]
+%\caption{Table Type Styles}
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|}
+%\hline
+%\textbf{Table}&\multicolumn{3}{|c|}{\textbf{Table Column Head}} \\
+%\cline{2-4} 
+%\textbf{Head} & \textbf{\textit{Table column subhead}}& \textbf{\textit{Subhead}}& \textbf{\textit{Subhead}} \\
+%\hline
+%copy& More table copy$^{\mathrm{a}}$& &  \\
+%\hline
+%\multicolumn{4}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+%\end{tabular}
+%\label{tab1}
+%\end{center}
+%\end{table}
+
+%\begin{figure}[htbp]
+%\centerline{\includegraphics{fig1.png}}
+%\caption{Example of a figure caption.}
+%\label{fig}
+%\end{figure}

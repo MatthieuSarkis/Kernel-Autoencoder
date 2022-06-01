@@ -7,15 +7,15 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 from typing import Optional, Dict
 
-from src.autoencoder.kernels import gaussian
+from src.autoencoder_v2.kernels import gaussian
 
 class AutoEncoder(nn.Module):
 
     def __init__(
         self,
-        dataset_size: int,
         feature_dim: int,
         latent_dim: int = 20,
+        number_centers: int = 20,
         sigma_encoder: float = 1.0,
         sigma_decoder: float = 1.0,
         regularization: float = 1.0,
@@ -28,14 +28,16 @@ class AutoEncoder(nn.Module):
         self.sigma_encoder = sigma_encoder
         self.sigma_decoder = sigma_decoder
         self.regularization = regularization
+        self.number_centers = number_centers
 
-        self.alpha_encoder = nn.Parameter(torch.empty(size=(latent_dim, dataset_size), dtype=torch.float32))
-        self.alpha_decoder = nn.Parameter(torch.empty(size=(dataset_size, feature_dim), dtype=torch.float32))
+        self.alpha_encoder = nn.Parameter(torch.empty(size=(latent_dim, number_centers), dtype=torch.float32))
+        self.alpha_decoder = nn.Parameter(torch.empty(size=(number_centers, feature_dim), dtype=torch.float32))
         nn.init.xavier_uniform_(self.alpha_encoder)
         nn.init.xavier_uniform_(self.alpha_decoder)
 
-        self.centers_encoder: Optional[torch.tensor] = None
-        self.centers_decoder: Optional[torch.tensor] = None
+        self.centers_encoder = nn.Parameter(torch.empty(size=(number_centers, feature_dim), dtype=torch.float32))
+        self.centers_decoder = nn.Parameter(torch.empty(size=(number_centers, latent_dim), dtype=torch.float32))
+
         self.hash_gram: Dict[int, torch.tensor] = {}
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -51,14 +53,18 @@ class AutoEncoder(nn.Module):
         epochs: int
     ) -> None:
 
-        self.centers_encoder = X_train
+        # Initializing the centers
+        permutation = torch.randperm(X_train.shape[0])
+        indices_encoder = permutation[0: self.number_centers]
+        indices_decoder = permutation[0: self.number_centers]
+        self.centers_encoder = nn.Parameter(X_train[indices_encoder])
+        self.centers_decoder = nn.Parameter(self.encode(X_train)[indices_decoder])
+
         losses = {'epoch': [], 'train_loss': [], 'test_loss': []}
 
         for epoch in tqdm(range(epochs)):
 
-            z = self.encode(x=X_train)
-            self.centers_decoder = z
-            reconstructed = self.decode(z)
+            reconstructed = self.decode(self.encode(x=X_train))
 
             l2_norm = sum(p.pow(2.0).sum() for p in self.parameters())
 
@@ -93,6 +99,7 @@ class AutoEncoder(nn.Module):
         if not key in self.hash_gram:
             self.hash_gram[key] = torch.tensor(gaussian(X1=x.detach().numpy(), X2=self.centers_encoder.detach().numpy(), sigma=self.sigma_encoder), dtype=torch.float32)
         K = self.hash_gram[key]
+
         return torch.mm(K, self.alpha_encoder.t())
 
     def decode(
